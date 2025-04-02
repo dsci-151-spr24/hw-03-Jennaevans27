@@ -1,6 +1,7 @@
 ---
 title: "HW 03 - Exploring the GSS"
 output: html_document
+author: Jenna Evans 
 ---
 
 ```{r include = FALSE}
