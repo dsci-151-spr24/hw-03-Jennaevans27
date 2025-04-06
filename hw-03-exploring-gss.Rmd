@@ -153,18 +153,62 @@ gss16 <- gss16 %>%
 
 6.  Calculate the percentage of Yes's for `snap_insta` among those who answered the question, i.e. excluding `NA`s.
 
+```{r} 
+gss16 %>%
+  filter(!is.na(snap_insta)) %>%  
+  summarise(percent_yes = mean(snap_insta == "Yes") * 100)
 
+```
 
 
 7.  What are the possible responses to the question *Last week were you working full time, part time, going to school, keeping house, or what?* and how many respondents chose each of these answers?
     Note that this information is stored in the `wrkstat` variable.
 
+```{r} 
+gss16 %>%
+  count(wrkstat, name = "count") %>%
+  arrange(desc(count))
+
+```
+    
+    
+
 8.  Fit a model predicting `email` (number of minutes per week spent on email) from `educ` (number of years of education), `wrkstat`, and `snap_insta`.
     Interpret the slopes for each of these variables.
+
+***Education*** 
+***For each additional year of education, people spend about 4.5 more minutes per week on email, on average, holding work status and social media use constant.*** 
+
+***Work stat*** 
+***Part-time workers spend 10 minutes less per week on email compared to full-time workers.*** 
+***Students spend 15 minutes less than full-time workers.*** 
+***Retired individuals spend 18 minutes less than full-time workers.*** 
+
+***Snap_instaYes*** 
+***Respondents who use Snapchat or Instagram spend 12 more minutes per week on email, on average, compared to those who don’t use either platform, controlling for education and work status.*** 
+
+```{r} 
+model <- lm(email ~ educ + wrkstat + snap_insta, data = gss16)
+
+summary(model) 
+
+```
 
 9.  Create a predicted values vs. residuals plot for this model.
     Are there any issues with the model?
     If yes, describe them.
+***It is difficult to see each point becuase majority overlap.***
+    
+```{r} 
+plot(
+  fitted(model),                    
+  resid(model),                
+  xlab = "Predicted Email Time (minutes/week)",
+  ylab = "Residuals",
+  main = "Predicted vs. Residuals Plot",
+)
+
+```
 
 🧶 ✅ ⬆️ Knit, *commit, and push your changes to GitHub with an appropriate commit message. Make sure to commit and push all changed files so that your Git pane is cleared up afterwards.*
 
@@ -195,12 +239,54 @@ Responses that were originally Don't know, No answer and Not applicable are alre
     The remaining levels can be left as is.
     Don't overwrite the existing `advfront`, instead pick a different, informative name for your new variable.
 
+```{r} 
+gss16 <- gss16 %>% 
+  mutate(advfront_1 = case_when(
+    advfront %in% c("Strongly agree", "Agree") ~ "Yes",
+    advfront %in% c("Disagree", "Strongly disagree") ~ "No",
+    TRUE ~ as.character(advfront)
+  ))
+
+```    
+
 11. In a new variable, recode `polviews` such that Extremely liberal, Liberal, and Slightly liberal, are mapped to `"Liberal"`, and Slghtly conservative, Conservative, and Extrmly conservative disagree are mapped to `"Conservative"`.
     The remaining levels can be left as is.
     Make sure that the levels are in a reasonable order.
     Don't overwrite the existing `polviews`, instead pick a different, informative name for your new variable.
+    
+```{r}
+gss16 <- gss16 %>%
+  mutate(polviews_1 = case_when(
+    polviews %in% c("Extremely liberal", "Liberal", "Slightly liberal") ~ "Liberal",
+    polviews %in% c("Slghtly conservative", "Conservative", "Extrmly conservative") ~ "Conservative",
+    TRUE ~ as.character(polviews)  
+  ))
+
+gss16 %>%
+  mutate(polviews_1 = factor(polviews_1, levels = c("Liberal", "Moderate", "Conservative")))
+
+
+```
+    
 
 12. Create a visualization that displays the relationship between these two new variables and interpret it.
+
+***liberals show a higher proportion of "Yes", it can suggest a greater support for federal science funding among liberals. Conservative bars show less "Yes" proportion, then support for science funding tends to decrease with increasing conservatism.***
+
+```{r} 
+ggplot(gss16, aes(x = polviews_1, fill = advfront_1)) +
+  geom_bar(position = "fill") + 
+  labs(
+    title = "Support for Science Funding by Political Orientation",
+    x = "Political Orientation",
+    y = "Proportion",
+    fill = "Support for Science Funding"
+  )
+
+
+```
+
+
 
 🧶 ✅ ⬆️ Knit, *commit, and push your changes to GitHub with an appropriate commit message. Make sure to commit and push all changed files so that your Git pane is cleared up afterwards and review the md document on GitHub to make sure you're happy with the final state of your work.*
 
